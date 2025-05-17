@@ -1,4 +1,4 @@
-import {Champion, Class, Item, Lane} from "./arrayTypes.ts";
+import {Item} from "./arrayTypes.ts";
 
 export function getRandomEntry(array: any[]) {
     if (!array || array.length === 0) {

@@ -13,7 +13,6 @@ export function createPlayer(userList: HTMLUListElement, index: number) {
         alert("The maximum number of players is 10.");
         return;
     }
-    let length = users.length;
     const name = `Player ${index + 1}`;
     if (name) {
         const newPlayer: Player = {
@@ -107,7 +106,12 @@ function deletePlayer(playerList: HTMLUListElement, index: number) {
 }
 
 function rerollPlayer(playerList: HTMLUListElement, index: number) {
-    singleUser = users.find(player => player.index === index).index;
+    const foundUser= users.find(player => player.index === index);
+    if (foundUser){
+        singleUser = foundUser.index;
+    } else {
+        console.warn(`Player with index ${index} not found`)
+    }
     callSingleRandomize(playerList);
 }
 
@@ -119,13 +123,21 @@ function getVisibleName(index: number) {
 
 function changeDifficulty(index:number, value:number){
     const existingPlayer = users.find(player => player.index === index);
-    existingPlayer.difficulty = value;
+    if (existingPlayer){
+        existingPlayer.difficulty = value;
+    } else {
+        console.warn(`Player with index ${index} not found`)
+    }
     saveSession();
 }
 
 function updatePlayerName(playerList: HTMLUListElement, index: number, newName: string) {
     const existingPlayer = users.find(player => player.index === index);
-    existingPlayer.name = newName;
+    if (existingPlayer){
+        existingPlayer.name = newName;
+    } else {
+        console.warn(`Player with index ${index} not found`)
+    }
     saveSession();
     renderPlayers(playerList);
 }

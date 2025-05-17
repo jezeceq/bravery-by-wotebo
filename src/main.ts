@@ -1,5 +1,3 @@
-import './style.css';
-import './HTMLsource/playerCards.css';
 import { deleteAll, randomize, renderPlayers, users as playerUsers } from './players.ts';
 import { fetchChampions, fetchItems, fetchLanes, fetchClasses } from './jsonHandling.ts';
 import { itemClassification } from './randomizers.ts';
@@ -56,14 +54,6 @@ let marksmanItems: Item[] = [];
 let assassinItems: Item[] = [];
 
 const SESSION_STORAGE_KEY = 'lolRandomizerSession_v1';
-
-let tempHolder: Champion = {
-    name: "None",
-    id: -1,
-    iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/-1.png",
-    roles: []
-};
-
 
 randomizeAllButton.addEventListener('click', () => {
     randomize(playerList, champArrayClosed, lanesArrayTeam1, lanesArrayTeam2, classesArray, true);
@@ -220,7 +210,7 @@ async function loadData() {
     }
 }
 
-loadData().then(r => renderPlayers(playerList));
+loadData().then(_r => renderPlayers(playerList));
 
 function displayChampions() {
     const champList = document.querySelector<HTMLUListElement>('#champ_list')!;
