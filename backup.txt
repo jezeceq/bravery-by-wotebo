@@ -1,0 +1,64 @@
+function playerBox(player: Player, index: number) {
+    return `
+            <li class="player_box">
+                <span class="box-string">${player.name}</span>
+
+                <span class="box-string">${player.champion.name}</span>
+                <img src=${player.champion.iconPath} alt=${player.champion.name} class="champSprout">
+
+                <span class="box-string">${player.lane.name}</span>
+                <img src=${player.lane.iconPath} alt=${player.lane.name} class="laneSprout">
+
+                <span class="box-string">${player.class?.name}</span>
+                <img src=${player.class?.iconPath} alt=${player.class?.name} class="classSprout">
+
+                <div class="items-container">
+                ${player.items?.map(item => `
+                    <div class="item">
+                        <span class="box-string">${item.name}</span>
+                        <img src="${item.iconPath}" alt="${item.name}" class="itemSprout">
+                    </div>
+                `).join("") || "<span class='box-string'>No Items</span>"}
+                </div>
+
+                <button class="change-name" data-index="${index}">Change Name</button>
+                <button class="delete-player" data-index="${index}">Delete</button>
+                <input type="range" min="0" max="3" class="card-slider" value="1" step="1">
+            </li>
+        `;
+}
+
+
+export function renderPlayers2(playerList: HTMLUListElement){
+    playerList.innerHTML = `
+        <div id="container2">
+            <div class="column" id="column1">
+                <div class="rowPC" data-id="0">Row 1 - Column 1</div>
+                <div class="rowPC" data-id="1">Row 2 - Column 1</div>
+                <div class="rowPC" data-id="2">Row 3 - Column 1</div>
+                <div class="rowPC" data-id="3">Row 4 - Column 1</div>
+                <div class="rowPC" data-id="4">Row 5 - Column 1</div>
+            </div>
+
+            <div class="column" id="column2">
+                <div class="rowPC" data-id="5">Row 1 - Column 2</div>
+                <div class="rowPC" data-id="6">Row 2 - Column 2</div>
+                <div class="rowPC" data-id="7">Row 3 - Column 2</div>
+                <div class="rowPC" data-id="8">Row 4 - Column 2</div>
+                <div class="rowPC" data-id="9">Row 5 - Column 2</div>
+            </div>
+        </div>
+    `
+
+    const rows = document.querySelectorAll<HTMLDivElement>('.rowPC');
+
+    rows.forEach(row => {
+        row.addEventListener('click', () => {
+            console.log("here")
+            const index = parseInt(row.getAttribute('data-id'));
+            console.log(index);
+            createPlayer(playerList, maxPlayers, index);
+        });
+    });
+
+}
