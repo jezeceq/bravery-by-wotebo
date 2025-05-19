@@ -2,7 +2,7 @@ import {Item} from "./arrayTypes.ts";
 
 export function getRandomEntry(array: any[]) {
     if (!array || array.length === 0) {
-        console.error("Array is empty or not loaded yet.");
+        console.warn("Array is empty or not loaded yet.");
         return null;
     }
 

@@ -1,5 +1,5 @@
 import {getRandomEntry} from "./randomizers.ts";
-import {callSingleRandomize, getItemArrayType, saveSession, setClosedArrays} from "./main.ts";
+import {callSingleRandomize, getItemArrayType, saveSession, setClosedArrays, getClosedArrays} from "./main.ts";
 import {Champion, Lane, Item, Player, Class} from "./arrayTypes.ts";
 import {playerBox} from "./HTMLsource/playerCardHTML.ts";
 
@@ -99,7 +99,19 @@ function getRowHTML(index: number): string {
 function deletePlayer(playerList: HTMLUListElement, index: number) {
     const indexTemp = users.findIndex(player => player.index === index);
     if (indexTemp !== -1) {
+        const arrays = getClosedArrays()
+        let lanes1 = [...arrays[0]];
+        let lanes2 = [...arrays[1]];
+        const user = users[indexTemp];
+        if(user.lane.name != "Fill"){
+            if(indexTemp < 5){
+                lanes1.push(user.lane)
+            } else {
+                lanes2.push(user.lane)
+            }
+        }
         users.splice(indexTemp, 1);
+        setClosedArrays([...arrays[2]], lanes1, lanes2);
         saveSession();
     }
     renderPlayers(playerList);
@@ -189,6 +201,7 @@ export function randomize(userList: HTMLUListElement, champArray: any[], laneArr
     let classType: number | undefined;
     let difficulty: number;
     let tempItem: Item[];
+    let breakCycle: boolean = false;
 
     users.forEach(player => {
         let name = getVisibleName(player.index);
@@ -196,11 +209,20 @@ export function randomize(userList: HTMLUListElement, champArray: any[], laneArr
             player.name = name;
         }
 
+        if(cA.length < 1 && !breakCycle){
+            alert("Not enough champions in pool!");
+            breakCycle = true;
+        } else if (cA.length > 0 && breakCycle){
+            breakCycle = false;
+        }
+        if(breakCycle){
+            return;
+        }
+
         if(!all){
             if(player.index != singleUser){
                 return;
             } else {
-                cA.push(player.champion);
                 if(player.lane.name != "Fill"){
                     if (player.index < 5) lA1.push(player.lane);
                     else lA2.push(player.lane);
@@ -219,7 +241,6 @@ export function randomize(userList: HTMLUListElement, champArray: any[], laneArr
             let lane = getRandomEntry(lA1);
             player.lane = lane;
             lA1 = lA1.filter(entry => entry !== lane);
-            console.log(lane)
         }
         else {
             let lane = getRandomEntry(lA2);
@@ -229,6 +250,7 @@ export function randomize(userList: HTMLUListElement, champArray: any[], laneArr
 
         //find random class or set class for difficulty = 0 = Easy
         if(difficulty === 0 || difficulty === 1){
+            console.info("Roles => " + player.champion.roles + " , Champion => " + player.champion.name)
             let classesTemp: Class[] = classesArray.filter(cls =>
                 player.champion.roles.includes(cls.name)
             );
@@ -277,7 +299,22 @@ export function randomize(userList: HTMLUListElement, champArray: any[], laneArr
 }
 
 export function deleteAll(userList: HTMLUListElement){
+        const arrays = getClosedArrays()
+        let lanes1 = [...arrays[0]];
+        let lanes2 = [...arrays[1]];
+        let champions = [...arrays[2]];
+
+        users.forEach(user => {
+            if(user.lane.name != "Fill"){
+                if(user.index < 5){
+                    lanes1.push(user.lane)
+                } else {
+                    lanes2.push(user.lane)
+                }
+            }
+        })
         users.length = 0;
+        setClosedArrays(champions, lanes1, lanes2);
         saveSession();
         renderPlayers(userList);
 }
