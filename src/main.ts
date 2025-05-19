@@ -179,25 +179,17 @@ function loadSessionFromLocalStorage(): boolean { // Returns true if session loa
     }
     return false;
 }
-
+/*
 function clearSession(): void {
-    // 1. Clear the session data from localStorage
     try {
         localStorage.removeItem(SESSION_STORAGE_KEY);
         console.log("Session removed from localStorage.");
     } catch (e) {
         console.error("Error removing session from localStorage:", e);
-        // Optionally, you might decide to not proceed with in-memory clear if localStorage clear fails,
-        // but usually, you'd want to clear in-memory state regardless.
     }
-
-    // 2. Reset the in-memory variables to their default/empty states
-    // For playerUsers, to maintain the same array reference if other parts of your code hold it:
     if (playerUsers && typeof playerUsers.length !== 'undefined') {
         playerUsers.length = 0;
     } else {
-        // If playerUsers might not be initialized or is not an array, re-assign
-        // playerUsers = []; // This line might be needed if playerUsers isn't guaranteed to be an array
     }
 
     champArrayClosed = [];
@@ -206,6 +198,8 @@ function clearSession(): void {
 
     console.log("In-memory session data cleared.");
 }
+*/
+
 async function loadData() {
     try {
         const sessionLoaded = loadSessionFromLocalStorage();
