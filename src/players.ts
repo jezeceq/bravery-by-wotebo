@@ -2,6 +2,7 @@ import {getRandomEntry} from "./randomizers.ts";
 import {callSingleRandomize, getItemArrayType, saveSession, setClosedArrays, getClosedArrays} from "./main.ts";
 import {Champion, Lane, Item, Player, Class} from "./arrayTypes.ts";
 import {playerBox} from "./HTMLsource/playerCardHTML.ts";
+import {openNameChangeModal} from "./HTMLsource/nameChangeModalHTML.ts";
 
 
 export const users: Player[] = [];
@@ -72,7 +73,10 @@ export function renderPlayers(playerList: HTMLUListElement) {
     document.querySelectorAll('#change-name').forEach(button => {
         button.addEventListener('click', () => {
             const index = parseInt(button.getAttribute('data-index')!);
-            openNameChangeModal(playerList, index);
+            const existingPlayer = users.find(player => player.index === index);
+            if (existingPlayer){
+                openNameChangeModal(playerList, index, existingPlayer.name);
+            }
         });
     });
 
@@ -142,54 +146,6 @@ function changeDifficulty(index:number, value:number){
     }
     saveSession();
 }
-
-function updatePlayerName(playerList: HTMLUListElement, index: number, newName: string) {
-    const existingPlayer = users.find(player => player.index === index);
-    if (existingPlayer){
-        existingPlayer.name = newName;
-    } else {
-        console.warn(`Player with index ${index} not found`)
-    }
-    saveSession();
-    renderPlayers(playerList);
-}
-
-function openNameChangeModal(playerList: HTMLUListElement, index: number) {
-    const modal = document.getElementById("nameChangeModal") as HTMLDivElement;
-    const input = document.getElementById("nameInput") as HTMLInputElement;
-    const saveButton = document.getElementById("saveName") as HTMLButtonElement;
-    const closeButton = document.querySelector(".close") as HTMLSpanElement;
-
-    modal.style.display = "block";
-
-    const newSaveButton = saveButton.cloneNode(true) as HTMLButtonElement;
-    saveButton.replaceWith(newSaveButton);
-
-    newSaveButton.addEventListener("click", () => {
-        const newName = input.value.trim();
-        if (newName !== "") {
-            updatePlayerName(playerList, index, newName);
-            console.log("here")
-            modal.style.display = "none";
-        }
-    });
-
-
-    closeButton.addEventListener("click", () => {
-        modal.style.display = "none";
-    });
-
-    // Ensure clicking outside the modal closes it
-    window.addEventListener("click", (event) => {
-        if (event.target === modal) {
-            modal.style.display = "none";
-        }
-    });
-}
-
-
-
-
 
 
 export function randomize(userList: HTMLUListElement, champArray: any[], laneArrayTeam1: any[], laneArrayTeam2: any[], classesArray: any[], all: boolean) {
@@ -298,7 +254,21 @@ export function randomize(userList: HTMLUListElement, champArray: any[], laneArr
     renderPlayers(userList);
 }
 
-export function deleteAll(userList: HTMLUListElement){
+export function fillAll(playerList: HTMLUListElement){
+    let existingPlayers: number[] = [];
+    users.forEach(player => {
+        existingPlayers.push(player.index)
+    })
+
+    for(let index = 0; index < 10; index++){
+        if (!existingPlayers.includes(index)){
+            createPlayer(playerList, index);
+        }
+    }
+
+}
+
+export function deleteAll(playerList: HTMLUListElement){
         const arrays = getClosedArrays()
         let lanes1 = [...arrays[0]];
         let lanes2 = [...arrays[1]];
@@ -316,7 +286,7 @@ export function deleteAll(userList: HTMLUListElement){
         users.length = 0;
         setClosedArrays(champions, lanes1, lanes2);
         saveSession();
-        renderPlayers(userList);
+        renderPlayers(playerList);
 }
 
 

@@ -1,4 +1,4 @@
-import { deleteAll, randomize, renderPlayers, users as playerUsers } from './players.ts';
+import {deleteAll, fillAll, randomize, renderPlayers, users as playerUsers} from './players.ts';
 import { fetchChampions, fetchItems, fetchLanes, fetchClasses } from './jsonHandling.ts';
 import { itemClassification } from './randomizers.ts';
 import { Champion, Class, Item, Lane, Player } from './arrayTypes.ts';
@@ -9,7 +9,8 @@ app.innerHTML = `
   <div>
     <div class="main-cont">
         <div class="all-effect-buttons">
-            <button class="button" type="button" id="all_randomizer">Randomize all</button>
+        <button class="button" type="button" id="all_fill">Fill all</button>
+            <button class="button" type="button" id="all_randomizer">Reroll all</button>
             <button class="button" type="button" id="all_delete">Delete all</button>
         </div>
         <ul id="player_list"></ul>
@@ -27,11 +28,11 @@ app.innerHTML = `
 `;
 
 const playerList = document.querySelector<HTMLUListElement>('#player_list')!;
+const fillAllButton = document.querySelector<HTMLButtonElement>('#all_fill')!;
 const randomizeAllButton = document.querySelector<HTMLButtonElement>('#all_randomizer')!;
 const deleteAllButton = document.querySelector<HTMLButtonElement>('#all_delete')!;
 const clearAllChampsButton = document.querySelector<HTMLButtonElement>('#clear_champs')!;
 const resetAllChampsButton = document.querySelector<HTMLButtonElement>('#reset_champs')!;
-const changeNameBlock = document.querySelector<HTMLDivElement>('#change_name_block')!;
 const champList = document.getElementById('champ_list')!;
 const searchInput = document.getElementById('champSearch') as HTMLInputElement;
 
@@ -53,8 +54,11 @@ let tankItems: Item[] = [];
 let marksmanItems: Item[] = [];
 let assassinItems: Item[] = [];
 
-const SESSION_STORAGE_KEY = 'lolRandomizerSession_v1';
+const SESSION_STORAGE_KEY = 'Session_v1';
 
+fillAllButton.addEventListener('click', () => {
+    fillAll(playerList);
+});
 randomizeAllButton.addEventListener('click', () => {
     randomize(playerList, champArrayClosed, lanesArrayTeam1, lanesArrayTeam2, classesArray, true);
     displayChampions();
@@ -63,6 +67,7 @@ randomizeAllButton.addEventListener('click', () => {
 deleteAllButton.addEventListener('click', () => {
     deleteAll(playerList);
 });
+
 
 resetAllChampsButton.addEventListener('click', () => {
     resetAvailableChampions()
@@ -86,17 +91,6 @@ searchInput.addEventListener('input', () => {
         }
     });
 });
-
-changeNameBlock.innerHTML = `
-    <div id="nameChangeModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Change Player Name</h2>
-            <input type="text" id="nameInput" value="New Name">
-            <button id="saveName">Save</button>
-        </div>
-    </div>
-`;
 
 export function getItemArrayType(which: number): Item[] {
     switch (which) {

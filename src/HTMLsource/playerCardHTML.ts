@@ -40,10 +40,10 @@ export function playerBox(player: Player, index: number) {
                 <div class="slider-container">
                   <input type="range" class="card-slider" min="0" max="3" step="1" value="${player.difficulty}" data-index="${index}">
                   <div class="labels">
-                    <span id="dif_easy">Easy</span>
-                    <span id="dif_med">Medium</span>
-                    <span id="dif_gard">Hard</span>
-                    <span id="dif_ins">Insane</span>
+                    <span id="dif_easy" title="One item and correct classes">Easy</span>
+                    <span id="dif_med" title="Two items and correct classes">Medium</span>
+                    <span id="dif_gard" title="Two items and all classes">Hard</span>
+                    <span id="dif_ins" title="Three items and all classes">Insane</span>
                   </div>
                 </div>
             </div>
