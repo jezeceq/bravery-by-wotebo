@@ -7,10 +7,12 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "deploy": "gh-pages -d dist"
+    "build:gh-pages": "cross-env DEPLOY_ENV=GH_PAGES tsc && vite build",
+    "deploy": "npm run build:gh-pages && gh-pages -d dist"
   },
   "devDependencies": {
     "@types/node": "^22.15.18",
+    "cross-env": "^7.0.3",
     "gh-pages": "^6.3.0",
     "typescript": "~5.7.2",
     "vite": "^6.3.5"
@@ -21,7 +23,6 @@
     "cors": "^2.8.5",
     "esbuild": "^0.25.0",
     "express": "^4.21.2",
-    "fs": "^0.0.1-security",
     "nanoid": "^3.3.8",
     "picocolors": "^1.1.1",
     "postcss": "^8.5.3",

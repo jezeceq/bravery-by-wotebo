@@ -5,9 +5,8 @@ const modalContainer = document.querySelector<HTMLDivElement>('#change_name_bloc
 
 if (!modalContainer) {
     console.error("#change_name_block container not found in your HTML! Make sure it exists.");
-}
-
-modalContainer.innerHTML = `
+} else {
+    modalContainer.innerHTML = `
     <div id="nameChangeModal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close-modal">×</span>
@@ -20,6 +19,7 @@ modalContainer.innerHTML = `
         </div>
     </div>
 `;
+}
 
 const modal = document.getElementById("nameChangeModal") as HTMLDivElement;
 const input = document.getElementById("nameInput") as HTMLInputElement;
