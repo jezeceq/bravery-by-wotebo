@@ -1,6 +1,12 @@
-// Updated function to return items as an array matching the shape of itemArray
 import {Champion, Item, Class, Lane} from "./arrayTypes.ts";
 
+/**
+ * Fetches item data from a specified URL, filters it according to predefined criteria,
+ * and transforms it into an array of `Item` objects.
+ * @param {string} url - The URL from which to fetch the item data (JSON).
+ * @returns {Promise<Item[]>} A promise that resolves to an array of `Item` objects,
+ * or an empty array if an error occurs.
+ */
 export async function fetchItems(url: string): Promise<Item[]> {
     const BASE_URL = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/items/icons2d";
 
@@ -12,16 +18,17 @@ export async function fetchItems(url: string): Promise<Item[]> {
 
         const itemsArray: any[] = await response.json();
 
+        // Chain of filters to select relevant items and map them to the Item structure.
         return itemsArray
-            .filter(item => item.id !== 3172)
-            .filter(item => !item.categories.includes("Boots"))
-            .filter(item => item.inStore === true)
-            .filter(item => item.displayInItemSets === true)
-            .filter(item => item.priceTotal > 1600)
+            .filter(item => item.id !== 3172) // Exclude specific item (Zephyr, ID 3172).
+            .filter(item => !item.categories.includes("Boots")) // Exclude items categorized as "Boots".
+            .filter(item => item.inStore === true) // Include only items available in the store.
+            .filter(item => item.displayInItemSets === true) // Include only items meant to be displayed in item sets.
+            .filter(item => item.priceTotal > 1600) // Include only items with a total price over 1600.
             .map(item => ({
                 name: item.name,
                 id: item.id,
-                iconPath: `${BASE_URL}/${item.iconPath.split('/').pop()?.toLowerCase()}`,
+                iconPath: `${BASE_URL}/${item.iconPath.split('/').pop()?.toLowerCase()}`, // Construct full icon path.
                 categories: item.categories
             })) as Item[];
 
@@ -31,9 +38,13 @@ export async function fetchItems(url: string): Promise<Item[]> {
     }
 }
 
-
-// Updated function to return champions as an array matching the shape of champArrayOpen
-
+/**
+ * Fetches champion data from a specified URL, filters out invalid entries,
+ * and transforms it into an array of `Champion` objects.
+ * @param {string} url - The URL from which to fetch the champion data (JSON).
+ * @returns {Promise<Champion[]>} A promise that resolves to an array of `Champion` objects,
+ * or an empty array if an error occurs.
+ */
 export async function fetchChampions(url: string): Promise<Champion[]> {
     const BASE_URL = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons";
 
@@ -46,13 +57,13 @@ export async function fetchChampions(url: string): Promise<Champion[]> {
         const champsArray: any[] = await response.json();
 
         return champsArray
-            .filter(champ => champ.id !== -1)
+            .filter(champ => champ.id !== -1) // Filter out champions with an ID of -1 (often placeholders).
             .map(champ => ({
-            name: champ.name,
-            id: champ.id,
-            iconPath: `${BASE_URL}/${champ.squarePortraitPath.split('/').pop()?.toLowerCase()}`,
-            roles: champ.roles
-        })) as Champion[];
+                name: champ.name,
+                id: champ.id,
+                iconPath: `${BASE_URL}/${champ.squarePortraitPath.split('/').pop()?.toLowerCase()}`, // Construct full icon path.
+                roles: champ.roles
+            })) as Champion[];
 
     } catch (error) {
         console.error("Error fetching or transforming champions:", error);
@@ -61,7 +72,11 @@ export async function fetchChampions(url: string): Promise<Champion[]> {
 }
 
 
-// Updated function to return lanes as an array matching the shape of lanesArray
+/**
+ * Asynchronously returns a predefined list of game lanes.
+ * This function currently returns a hardcoded list and does not fetch external data.
+ * @returns {Promise<Lane[]>} A promise that resolves to an array of `Lane` objects.
+ */
 export async function fetchLanes(): Promise<Lane[]> {
     return [
         { name: 'toplane', iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-top.png" },
@@ -72,7 +87,11 @@ export async function fetchLanes(): Promise<Lane[]> {
     ] as Lane[];
 }
 
-// Updated function to return classes as an array matching the shape of classesArray
+/**
+ * Asynchronously returns a predefined list of champion classes.
+ * This function currently returns a hardcoded list and does not fetch external data.
+ * @returns {Promise<Class[]>} A promise that resolves to an array of `Class` objects.
+ */
 export async function fetchClasses(): Promise<Class[]> {
     return [
         { name: 'support', iconPath: "https://wiki.leagueoflegends.com/en-us/images/Controller_icon.png?728f3&20181117143552",type: 3 },
