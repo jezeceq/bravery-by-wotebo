@@ -70,7 +70,6 @@ deleteAllButton.addEventListener('click', () => {
 
 resetAllChampsButton.addEventListener('click', () => {
     resetAvailableChampions();
-    clearSession()
 });
 
 clearAllChampsButton.addEventListener('click', () => {
@@ -148,8 +147,8 @@ export function callSingleRandomize(playerList: HTMLUListElement) {
  * Saves the current application state to localStorage.
  * This includes player data and the lists of unavailable champions and lanes.
  */
-/**
- * export function saveSession() {
+
+ export function saveSession() {
     const sessionData = {
         users: playerUsers, // from players.ts
         champArrayClosed: champArrayAvailable,
@@ -163,7 +162,7 @@ export function callSingleRandomize(playerList: HTMLUListElement) {
         console.error("Error saving session to localStorage:", e);
     }
 }
-*/
+
 
 /**
  * Attempts to load application state from localStorage.
@@ -212,6 +211,7 @@ function loadSessionFromLocalStorage(): boolean { // Returns true if session loa
     return false;
 }
 
+/**
 function clearSession(): void {
     try {
         localStorage.removeItem(SESSION_STORAGE_KEY);
@@ -230,6 +230,7 @@ function clearSession(): void {
 
     console.log("In-memory session data cleared.");
 }
+    */
 
 
 /**

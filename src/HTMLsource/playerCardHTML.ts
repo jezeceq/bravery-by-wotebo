@@ -187,7 +187,7 @@ export function completeLaneSprout(lane: Lane, index: number): string {
     let lanesTeam1 = arrays[0];
     let lanesTeam2 = arrays[1];
 
-    let dropdownOptions:string
+    let dropdownOptions:string = "";
 
     if(index < 5){
         dropdownOptions = lanesTeam1.map(lane => `
