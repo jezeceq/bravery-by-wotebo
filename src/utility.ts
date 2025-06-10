@@ -103,7 +103,25 @@ export function itemClassification(array: Item[], type: number) {
                 id: 1,
                 name: "Placeholder",
                 iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-top.png",
-                categories: []
+                categories: [],
+                price: 0
             }];
     }
+}
+
+/**
+ * Formats a category string from "PascalCase" to a more readable "Title Case" format.
+ * Handles special cases like "OnHit".
+ * @param {string} category - The category string to format (e.g., "AttackSpeed").
+ * @returns {string} The formatted string (e.g., "Attack Speed").
+ */
+export function formatCategoryName(category: string): string {
+    if (category === 'OnHit') {
+        return 'On-Hit';
+    }
+    if (category === 'NonbootsMovement') {
+        return 'None-boots Movement';
+    }
+
+    return category.replace(/([A-Z])/g, ' $&').trim();
 }

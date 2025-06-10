@@ -121,6 +121,7 @@ ul {
 }
 
 .champ-wrapper {
+  position: relative;
   display: inline-block;
   border-radius: 8px;
 }

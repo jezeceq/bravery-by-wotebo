@@ -1,13 +1,13 @@
-import {getRandomEntry} from "./randomizers.ts";
-import {callSingleRandomize, getItemArrayType, saveSession, setClosedArrays, getClosedArrays} from "./main.ts";
-import {Champion, Lane, Item, Player, Class} from "./arrayTypes.ts";
+import {getRandomEntry} from "./utility.ts";
+import {callSingleRandomize, getClosedArrays, getItemArrayType, saveSession, setClosedArrays} from "./main.ts";
+import {Champion, Class, Item, Lane, Player} from "./arrayTypes.ts";
 import {playerBox} from "./HTMLsource/playerCardHTML.ts";
-import {openNameChangeModal} from "./HTMLsource/nameChangeModalHTML.ts";
 
 
 export const users: Player[] = []; // Global array storing all active player objects.
 let singleUser: number; // Stores the index of the player targeted for a single reroll operation.
 const maxPlayers = 10; // Maximum number of players allowed in the application.
+let editingPlayerIndex: number | null = null;
 
 /**
  * Creates a new player object with default values and adds it to the `users` array.
@@ -35,7 +35,8 @@ export function createPlayer(userList: HTMLUListElement, index: number) {
                 iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-fill.png"
             } as Lane,
             items: [],
-            difficulty: 1 // Default difficulty level.
+            difficulty: 1, // Default difficulty level.
+            fixedLane: false
         };
         users.push(newPlayer);
         saveSession(); // Persist changes.
@@ -85,17 +86,6 @@ export function renderPlayers(playerList: HTMLUListElement) {
         })
     })
 
-    // Attach event listeners to "change name" buttons.
-    document.querySelectorAll('#change-name').forEach(button => {
-        button.addEventListener('click', () => {
-            const index = parseInt(button.getAttribute('data-index')!);
-            const existingPlayer = users.find(player => player.index === index);
-            if (existingPlayer){
-                openNameChangeModal(playerList, index, existingPlayer.name);
-            }
-        });
-    });
-
     // Attach event listeners to difficulty sliders on player cards.
     document.querySelectorAll('.card-slider').forEach(slider => {
         slider.addEventListener('input', () => {
@@ -104,6 +94,67 @@ export function renderPlayers(playerList: HTMLUListElement) {
             changeDifficulty(index, value);
         })
     })
+
+    document.querySelectorAll('.has-dropdown').forEach(dropdownContainer => {
+        dropdownContainer.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const content = dropdownContainer.querySelector('.lane-dropdown-content');
+            document.querySelectorAll('.lane-dropdown-content.show').forEach(openDropdown => {
+                if (openDropdown !== content) {
+                    openDropdown.classList.remove('show');
+                }
+            });
+            content?.classList.toggle('show');
+        });
+    });
+
+    document.querySelectorAll('.lane-option').forEach(option => {
+        option.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const playerIndex = parseInt(option.getAttribute('data-index')!);
+            const laneName = option.getAttribute('data-lane-name')!;
+            changePlayerLane(playerIndex, laneName, playerList);
+        });
+    });
+
+    window.addEventListener('click', (event) => {
+        if (!(event.target as Element).closest('.has-dropdown')) {
+            document.querySelectorAll('.lane-dropdown-content.show').forEach(openDropdown => {
+                openDropdown.classList.remove('show');
+            });
+        }
+    });
+
+    // Attach event listeners to "change name" buttons.
+    document.querySelectorAll('#change-name').forEach(button => {
+        button.addEventListener('click', () => {
+            editingPlayerIndex = parseInt(button.getAttribute('data-index')!);
+            renderPlayers(playerList);
+        });
+    });
+
+    document.querySelectorAll('.editing-name-input').forEach(input => {
+        input.addEventListener('input', () => {
+            input.classList.remove('input-error');
+        });
+    });
+
+    document.querySelectorAll('#save-name-inline').forEach(button => {
+        button.addEventListener('click', () => {
+            const index = parseInt(button.getAttribute('data-index')!);
+            const input = document.querySelector(`.editing-name-input[data-index="${index}"]`) as HTMLInputElement;
+            if(updatePlayerName(input, index)){
+                renderPlayers(playerList);
+            }
+        });
+    });
+
+    document.querySelectorAll('#cancel-name-inline').forEach(button => {
+        button.addEventListener('click', () => {
+            editingPlayerIndex = null;
+            renderPlayers(playerList);
+        });
+    });
 }
 
 /**
@@ -116,7 +167,7 @@ export function renderPlayers(playerList: HTMLUListElement) {
 function getRowHTML(index: number): string {
     const existingPlayer = users.find(player => player.index === index);
     return existingPlayer
-        ? `<div class="box-wrapper" > ${playerBox(existingPlayer, index)} </div>` // Player exists, render their card.
+        ? `<div class="box-wrapper" > ${playerBox(existingPlayer, index, editingPlayerIndex)} </div>` // Player exists, render their card.
         : `<div class="box-wrapper">
                 <li class="rowPC" data-index="${index}">+</li>
             </div>
@@ -131,6 +182,7 @@ function getRowHTML(index: number): string {
  */
 function deletePlayer(playerList: HTMLUListElement, index: number) {
     const indexTemp = users.findIndex(player => player.index === index); // Find the actual index in the users array.
+    console.warn(index + " + " + indexTemp)
     if (indexTemp !== -1) {
         const arrays = getClosedArrays(); // Get current state of unavailable entities.
         let lanes1 = [...arrays[0]];
@@ -138,9 +190,10 @@ function deletePlayer(playerList: HTMLUListElement, index: number) {
         const user = users[indexTemp];
 
         // If the player had a specific lane (not "Fill"), add it back to the respective team's available lane pool.
-        if(user.lane.name != "Fill"){
-            if(indexTemp < 5){ // Player was in Team 1 (indices 0-4).
+        if(user.lane.name !== "Fill"){
+            if(index < 5){ // Player was in Team 1 (indices 0-4).
                 lanes1.push(user.lane);
+                console.error("tady")
             } else { // Player was in Team 2 (indices 5-9).
                 lanes2.push(user.lane);
             }
@@ -148,6 +201,7 @@ function deletePlayer(playerList: HTMLUListElement, index: number) {
         users.splice(indexTemp, 1); // Remove the player from the array.
         setClosedArrays([...arrays[2]], lanes1, lanes2); // Update the global unavailable arrays.
         saveSession();
+        console.log(lanes1.length + " + " + lanes2.length)
     }
     renderPlayers(playerList); // Re-render the player list.
 }
@@ -169,15 +223,59 @@ function rerollPlayer(playerList: HTMLUListElement, index: number) {
 }
 
 /**
- * Retrieves the current value from a player's name input field in the DOM.
- * This is used to update the player's name in the data model if it has been changed in the UI.
- * @param {number} index - The index of the player whose name is to be retrieved.
- * @returns {string | null | undefined} The value of the name input field, or null/undefined if not found.
+ * Validates the content of a player name input field.
+ * Adds/removes 'input-error' class and returns validation status.
+ * @param {HTMLInputElement | null} input - The input element to validate.
+ * @returns {string | null} The validated and trimmed name if successful, otherwise null.
  */
-function getVisibleName(index: number) {
-    const nameElement = document.querySelector(`.visible-name[data-index="${index}"]`);
-    if (!nameElement) return null;
-    if (nameElement instanceof HTMLInputElement) return nameElement.value;
+function validatePlayerNameInput(input: HTMLInputElement | null): string | null {
+    if (!input) return null;
+
+    input.classList.remove('input-error');
+
+    const newNameRaw = input.value;
+    const newNameTrimmed = newNameRaw.trim();
+
+    // Validation 1: Empty
+    if (newNameTrimmed === "") {
+        input.classList.add('input-error');
+        input.focus();
+        return null;
+    }
+
+    // Validation 2: Length
+    if (newNameRaw.length > 12) {
+        input.classList.add('input-error');
+        input.focus();
+        return null;
+    }
+
+    // Validation: Name characters (allows spaces, letters from various scripts, and numbers).
+    const nameValidationRegex = /^[ \p{L}\p{N}]+$/u;
+    if (!nameValidationRegex.test(newNameTrimmed)) {
+        input.classList.add('input-error');
+        input.focus();
+        return null;
+    }
+
+    // All checks passed
+    return newNameTrimmed;
+}
+
+function updatePlayerName(input: HTMLInputElement, index: number): boolean {
+    const validatedName = validatePlayerNameInput(input);
+
+    if (validatedName) {
+        const player = users.find(p => p.index === index);
+        if (player) {
+            player.name = validatedName;
+            saveSession();
+        }
+        editingPlayerIndex = null;
+        return true; // Success
+    }
+
+    return false; // Failure
 }
 
 /**
@@ -193,6 +291,44 @@ function changeDifficulty(index:number, value:number){
         console.warn(`Player with index ${index} not found`);
     }
     saveSession();
+}
+
+function changePlayerLane(index: number, newLaneName: string, playerList: HTMLUListElement) {
+    const arrays = getClosedArrays();
+    let lanesTeam1 = [...arrays[0]];
+    let lanesTeam2 = [...arrays[1]];
+
+    const player = users.find(u => u.index === index);
+    let newLane: Lane | undefined
+    if(player){
+        if (index < 5) {
+            newLane = lanesTeam1.find(lane => lane.name === newLaneName);
+            if(newLane){
+                if (player.lane.name !== "Fill"){
+                    lanesTeam1.push(player.lane)
+                }
+                player.lane = newLane;
+                if (newLane.name !== "Fill"){
+                    lanesTeam1 = lanesTeam1.filter(entry => entry !== newLane);
+                }
+            }
+        } else if (index >= 5) {
+            newLane = lanesTeam2.find(lane => lane.name === newLaneName);
+            if (newLane) {
+                if (player.lane.name !== "Fill") {
+                    lanesTeam2.push(player.lane)
+                }
+                player.lane = newLane;
+                if (newLane.name !== "Fill") {
+                    lanesTeam2 = lanesTeam2.filter(entry => entry !== newLane);
+                }
+            }
+        }
+        player.fixedLane = newLane?.name !== "Fill";
+        setClosedArrays( arrays[2] , lanesTeam1, lanesTeam2)
+        saveSession();
+        renderPlayers(playerList);
+    }
 }
 
 
@@ -218,12 +354,40 @@ export function randomize(userList: HTMLUListElement, champArray: any[], laneArr
     let tempItem: Item[]; // Temporary array for item selection.
     let breakCycle: boolean = false;
 
-    users.forEach(player => {
-        // Update player's name from their input field if it has changed.
-        let name = getVisibleName(player.index);
-        if (name){
-            player.name = name;
+    if(all){
+        users.forEach(player => {
+            if(player.lane.name !== "Fill" && player.fixedLane == false) {
+                if (player.index < 5) lA1.push(player.lane); // Team 1
+                else lA2.push(player.lane); // Team 2
+            }
+            if (player.champion.id === -1) {
+                const input = document.querySelector(`.visible-name[data-index="${player.index}"]`) as HTMLInputElement;
+                const validatedName = validatePlayerNameInput(input);
+                if (!validatedName) {
+                    player.name = `Player ${player.index + 1}`;
+                    return;
+                }
+                player.name = validatedName;
+            }
+        })
+    } else {
+        const player = users.find(p => p.index === singleUser);
+        if (player && player.champion.id === -1) {
+            const input = document.querySelector(`.visible-name[data-index="${player.index}"]`) as HTMLInputElement;
+            const validatedName = validatePlayerNameInput(input);
+            if (!validatedName) {
+                player.name = `Player ${player.index + 1}`;
+                return;
+            }
+            player.name = validatedName;
         }
+        if(player && player.lane.name !== "Fill" && player.fixedLane == false){
+            if (player.index < 5) lA1.push(player.lane); // Team 1
+            else lA2.push(player.lane); // Team 2
+        }
+    }
+
+    users.forEach(player => {
 
         // Check for sufficient champions.
         if(cA.length < 1 && !breakCycle){
@@ -237,17 +401,8 @@ export function randomize(userList: HTMLUListElement, champArray: any[], laneArr
         }
 
         // If not randomizing all players, only process the 'singleUser'.
-        if(!all){
-            if(player.index != singleUser){
-                return; // Skip if this is not the targeted single user.
-            } else {
-                // If rerolling a single player who had a specific lane (not "Fill"),
-                // temporarily add that lane back to the available pool for this reroll.
-                if(player.lane.name != "Fill"){
-                    if (player.index < 5) lA1.push(player.lane); // Team 1
-                    else lA2.push(player.lane); // Team 2
-                }
-            }
+        if(!all && player.index != singleUser){
+           return;
         }
         difficulty = player.difficulty;
 
@@ -257,20 +412,27 @@ export function randomize(userList: HTMLUListElement, champArray: any[], laneArr
         cA = cA.filter(entry => entry !== champion); // Remove assigned champion from available pool.
 
         // Assign a random lane based on the player's team.
-        if (player.index < 5){ // Player is in Team 1 (indices 0-4).
-            let lane = getRandomEntry(lA1);
-            player.lane = lane;
-            lA1 = lA1.filter(entry => entry !== lane); // Remove assigned lane from Team 1's available pool.
-        }
-        else { // Player is in Team 2 (indices 5-9).
-            let lane = getRandomEntry(lA2);
-            player.lane = lane;
-            lA2 = lA2.filter(entry => entry !== lane); // Remove assigned lane from Team 2's available pool.
+        if (player.fixedLane == false){
+            if (player.index < 5){ // Player is in Team 1 (indices 0-4).
+                let lane: Lane = getRandomEntry(lA1);
+                while (lane.name === "Fill"){
+                    lane = getRandomEntry(lA1);
+                }
+                player.lane = lane;
+                lA1 = lA1.filter(entry => entry !== lane); // Remove assigned lane from Team 1's available pool.
+            }
+            else { // Player is in Team 2 (indices 5-9).
+                let lane: Lane = getRandomEntry(lA2);
+                while (lane.name === "Fill"){
+                    lane = getRandomEntry(lA2);
+                }
+                player.lane = lane;
+                lA2 = lA2.filter(entry => entry !== lane); // Remove assigned lane from Team 2's available pool.
+            }
         }
 
         // Assign a class based on difficulty.
         if(difficulty === 0 || difficulty === 1){ // Easy or Medium difficulty.
-            console.info("Roles => " + player.champion.roles + " , Champion => " + player.champion.name);
             // Attempt to assign a class that matches one of the champion's roles.
             let classesTemp: Class[] = classesArray.filter(cls =>
                 player.champion.roles.includes(cls.name)

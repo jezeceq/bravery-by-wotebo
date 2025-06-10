@@ -1,6 +1,6 @@
 import {deleteAll, fillAll, randomize, renderPlayers, users as playerUsers} from './players.ts';
 import { fetchChampions, fetchItems, fetchLanes, fetchClasses } from './jsonHandling.ts';
-import { itemClassification } from './randomizers.ts';
+import { itemClassification } from './utility.ts';
 import { Champion, Class, Item, Lane, Player } from './arrayTypes.ts';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -36,9 +36,8 @@ const searchInput = document.getElementById('champSearch') as HTMLInputElement;
 
 let classesArray: Class[] = [];
 
-let lanesArrayTeam1: Lane[] = [];
+let lanesArray: Lane[] = [];
 let lanesArrayTeam1Available: Lane[] = []; // Lanes currently available for selection for Team 1.
-let lanesArrayTeam2: Lane[] = [];
 let lanesArrayTeam2Available: Lane[] = []; // Lanes currently available for selection for Team 2.
 
 let champArray: Champion[] = []; // Master list of all champions.
@@ -57,9 +56,10 @@ const SESSION_STORAGE_KEY = 'Session_v1'; // Key used for storing session data i
 
 fillAllButton.addEventListener('click', () => {
     fillAll(playerList);
+    //clearSession()
 });
 randomizeAllButton.addEventListener('click', () => {
-    randomize(playerList, champArrayAvailable, lanesArrayTeam1, lanesArrayTeam2, classesArray, true);
+    randomize(playerList, champArrayAvailable, lanesArrayTeam1Available, lanesArrayTeam2Available, classesArray, true);
     displayChampions();
 });
 
@@ -70,7 +70,7 @@ deleteAllButton.addEventListener('click', () => {
 
 resetAllChampsButton.addEventListener('click', () => {
     resetAvailableChampions();
-    //clearSession()
+    clearSession()
 });
 
 clearAllChampsButton.addEventListener('click', () => {
@@ -148,7 +148,8 @@ export function callSingleRandomize(playerList: HTMLUListElement) {
  * Saves the current application state to localStorage.
  * This includes player data and the lists of unavailable champions and lanes.
  */
-export function saveSession() {
+/**
+ * export function saveSession() {
     const sessionData = {
         users: playerUsers, // from players.ts
         champArrayClosed: champArrayAvailable,
@@ -162,6 +163,7 @@ export function saveSession() {
         console.error("Error saving session to localStorage:", e);
     }
 }
+*/
 
 /**
  * Attempts to load application state from localStorage.
@@ -209,7 +211,7 @@ function loadSessionFromLocalStorage(): boolean { // Returns true if session loa
     }
     return false;
 }
-/*
+
 function clearSession(): void {
     try {
         localStorage.removeItem(SESSION_STORAGE_KEY);
@@ -228,7 +230,7 @@ function clearSession(): void {
 
     console.log("In-memory session data cleared.");
 }
-*/
+
 
 /**
  * Asynchronously loads all necessary initial data for the application.
@@ -251,8 +253,7 @@ async function loadData() {
         itemArray = items;
         champArray = champions;
         champArray.sort((a, b) => a.name.localeCompare(b.name)); // Sort champions alphabetically by name.
-        lanesArrayTeam2 = lanes; // Initialize lane arrays for both teams.
-        lanesArrayTeam1 = lanes;
+        lanesArray = lanes;
         classesArray = classes;
 
         // Classify items into role-specific arrays.
@@ -266,7 +267,7 @@ async function loadData() {
         // If no session was loaded from localStorage, initialize the "closed" arrays
         // (e.g., making all champions/lanes initially available) and save this initial state.
         if (!sessionLoaded) {
-            setClosedArrays(champArray, lanesArrayTeam1, lanesArrayTeam2);
+            setClosedArrays(champArray, lanesArray, lanesArray);
             saveSession();
         }
 
@@ -279,6 +280,7 @@ async function loadData() {
 
 // Initial data load sequence.
 loadData().then(_r => renderPlayers(playerList)); // After data is loaded, render the player list.
+
 
 /**
  * Renders the list of champions in the UI.
@@ -297,16 +299,21 @@ function displayChampions() {
         const isHighlighted = searchTerm !== "" && champ.name.toLowerCase().includes(searchTerm);
         const isDisabled = champArrayAvailable.some(champion => champion.id === champ.id);
 
+        const tooltipContent = `
+        <strong>${champ.name}:</strong> ${champ.title}
+        <hr>
+        <strong>Roles:</strong> ${champ.roles.join(', ')}
+        `;
 
         li.innerHTML = `
-            <li class="champ-wrapper ${isHighlighted ? "highlight" : ""}">
+            <li class="champ-wrapper has-tooltip ${isHighlighted ? "highlight" : ""}">
               <img 
                 src="${champ.iconPath}" 
-                alt="${champ.name}" 
-                title="${champ.name}" 
+                alt="${champ.name}"
                 class="champ-icon ${isDisabled ? "" : "disabled"}" 
                 data-id="${champ.id}"
               />
+              <div class="tooltip-box">${tooltipContent}</div>
             </li>
         `;
 

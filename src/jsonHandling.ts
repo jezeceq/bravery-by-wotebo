@@ -29,7 +29,8 @@ export async function fetchItems(url: string): Promise<Item[]> {
                 name: item.name,
                 id: item.id,
                 iconPath: `${BASE_URL}/${item.iconPath.split('/').pop()?.toLowerCase()}`, // Construct full icon path.
-                categories: item.categories
+                categories: item.categories,
+                price: item.priceTotal
             })) as Item[];
 
     } catch (error) {
@@ -62,7 +63,8 @@ export async function fetchChampions(url: string): Promise<Champion[]> {
                 name: champ.name,
                 id: champ.id,
                 iconPath: `${BASE_URL}/${champ.squarePortraitPath.split('/').pop()?.toLowerCase()}`, // Construct full icon path.
-                roles: champ.roles
+                roles: champ.roles,
+                title: champ.description
             })) as Champion[];
 
     } catch (error) {
@@ -79,11 +81,12 @@ export async function fetchChampions(url: string): Promise<Champion[]> {
  */
 export async function fetchLanes(): Promise<Lane[]> {
     return [
-        { name: 'toplane', iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-top.png" },
-        { name: 'jungle', iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-jungle.png" },
-        { name: 'midlane', iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-middle.png" },
-        { name: 'botlane', iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-bottom.png" },
-        { name: 'support', iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-utility.png" }
+        { name: 'Toplane', iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-top.png" },
+        { name: 'Jungle', iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-jungle.png" },
+        { name: 'Midlane', iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-middle.png" },
+        { name: 'Botlane', iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-bottom.png" },
+        { name: 'Support', iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-utility.png" },
+        { name: "Fill", iconPath: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-parties/global/default/icon-position-banner-primary-fill.png"}
     ] as Lane[];
 }
 

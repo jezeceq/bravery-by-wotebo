@@ -12,6 +12,8 @@ export interface Player {
     champion: Champion;
     /** The lane assigned to the player. */
     lane: Lane;
+    /** Says if the player has chosen specific lane and blocked lanes reroll. */
+    fixedLane: Boolean
     /**
      * The class assigned to the player.
      * This can be undefined if no class is specifically assigned or relevant.
@@ -36,6 +38,8 @@ export type Item = {
     iconPath?: string;
     /** An array of strings representing the categories the item belongs to (e.g., "Damage", "Health"). */
     categories?: string[];
+    /** Total price of the item */
+    price: number
 };
 
 /**
@@ -82,4 +86,6 @@ export type Champion = {
     iconPath: string;
     /** An array of strings representing the primary roles of the champion (e.g., "fighter", "mage"). */
     roles: string[];
+    /** The lore relevant title for the champion */
+    title: string[]
 };
